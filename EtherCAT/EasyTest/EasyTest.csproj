@@ -91,4 +91,8 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>copy $(ProjectDir)soemlib.dll $(TargetDir)
+</PreBuildEvent>
+  </PropertyGroup>
 </Project>
