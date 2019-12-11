@@ -1,9 +1,9 @@
 # SOEMの.NETラッパー
-<!--
+
 ## 解説記事
 
-- [SOEMを.NETで使う - 滴了庵日録](TODO)
--->
+- [SOEMを.NETで使う - 滴了庵日録](https://lipoyang.hatenablog.com/entry/2019/12/11/120416)
+
 ## DLL(soemlib.dll)のビルド
 
 - Npcapライブラリをインストールする。([こちらの記事](https://lipoyang.hatenablog.com/entry/2019/04/19/204636)を参照)
