@@ -9,18 +9,20 @@
 static char IOmap[4096];
 // 期待されるWKC値
 static int expectedWKC;
+// ネットワークアダプタのリスト
+static ec_adaptert * adapters = NULL;
 
 // 開く
 // nif: ネットワークインターフェースID
 // return: 0=失敗 / 1=成功
-__declspec(dllexport) int __stdcall soem_open(char* nif)
+int __stdcall soem_open(char* nif)
 {
 	int ret = ec_init(nif);
 	return ret;
 }
 
 // 閉じる
-__declspec(dllexport) void __stdcall soem_close(void)
+void __stdcall soem_close(void)
 {
 	ec_close();
 }
@@ -31,7 +33,7 @@ __declspec(dllexport) void __stdcall soem_close(void)
 
 // コンフィグする
 // return 結果
-__declspec(dllexport) int __stdcall soem_config(void)
+int __stdcall soem_config(void)
 {
 	int oloop, iloop, chk;
 	
@@ -96,14 +98,14 @@ __declspec(dllexport) int __stdcall soem_config(void)
 
 // スレーブの数を取得
 // return: スレーブの数
-__declspec(dllexport) int __stdcall soem_getSlaveCount(void)
+int __stdcall soem_getSlaveCount(void)
 {
 	return ec_slavecount;
 }
 
 // スレーブの状態を更新
 // return: 全スレーブの中で最も低い状態
-__declspec(dllexport) int __stdcall soem_updateState(void)
+int __stdcall soem_updateState(void)
 {
 	int ret = ec_readstate();
 	return ret;
@@ -112,7 +114,7 @@ __declspec(dllexport) int __stdcall soem_updateState(void)
 // スレーブの状態を取得
 // slave: スレーブのインクリメンタルアドレス
 // return: 状態
-__declspec(dllexport) int __stdcall soem_getState(int slave)
+int __stdcall soem_getState(int slave)
 {
 	return ec_slave[slave].state;
 }
@@ -120,7 +122,7 @@ __declspec(dllexport) int __stdcall soem_getState(int slave)
 // スレーブのALステータスコードを取得
 // slave: スレーブのインクリメンタルアドレス
 // return: ALステータスコード
-__declspec(dllexport) int __stdcall soem_getALStatusCode(int slave)
+int __stdcall soem_getALStatusCode(int slave)
 {
 	return ec_slave[slave].ALstatuscode;
 }
@@ -128,13 +130,13 @@ __declspec(dllexport) int __stdcall soem_getALStatusCode(int slave)
 // スレーブのALステータスの説明を取得
 // slave: スレーブのインクリメンタルアドレス
 // desc: ALステータスの説明 (最大31文字)
-__declspec(dllexport) void __stdcall soem_getALStatusDesc(int slave, char* desc)
+void __stdcall soem_getALStatusDesc(int slave, char* desc)
 {
 	snprintf(desc, 31, "%s", ec_ALstatuscode2string( ec_slave[slave].ALstatuscode ));
 }
 
 // スレーブの状態変更を要求
-__declspec(dllexport) void __stdcall soem_requestState(int slave, int state)
+void __stdcall soem_requestState(int slave, int state)
 {
 	ec_slave[slave].state = state;
 	ec_writestate(slave);
@@ -143,7 +145,7 @@ __declspec(dllexport) void __stdcall soem_requestState(int slave, int state)
 // スレーブの名前を取得
 // slave: スレーブのインクリメンタルアドレス
 // name: スレーブの名前 (最大31文字)
-__declspec(dllexport) void __stdcall soem_getName(int slave, char* name)
+void __stdcall soem_getName(int slave, char* name)
 {
 	snprintf(name, 31, "%s", ec_slave[slave].name );
 }
@@ -151,7 +153,7 @@ __declspec(dllexport) void __stdcall soem_getName(int slave, char* name)
 // スレーブのベンダ番号/製品番号/バージョン番号を取得
 // slave: スレーブのインクリメンタルアドレス
 // id: {ベンダ番号, 製品番号, バージョン番号}
-__declspec(dllexport) void __stdcall soem_getId(int slave, unsigned long* id)
+void __stdcall soem_getId(int slave, unsigned long* id)
 {
 	id[0] = ec_slave[slave].eep_man;
 	id[1] = ec_slave[slave].eep_id;
@@ -160,7 +162,7 @@ __declspec(dllexport) void __stdcall soem_getId(int slave, unsigned long* id)
 
 // PDO転送する
 // return:  0=失敗 / 1=成功
-__declspec(dllexport) int __stdcall soem_transferPDO(void)
+int __stdcall soem_transferPDO(void)
 {
 	ec_send_processdata();
 	int wkc = ec_receive_processdata(EC_TIMEOUTRET);
@@ -176,7 +178,7 @@ __declspec(dllexport) int __stdcall soem_transferPDO(void)
 // slave: スレーブのインクリメンタルアドレス
 // offset: オフセットアドレス
 // return: 入力値
-__declspec(dllexport) uint8_t __stdcall soem_getInputPDO(int slave, int offset)
+uint8_t __stdcall soem_getInputPDO(int slave, int offset)
 {
 	uint8_t ret = 0;
 	
@@ -191,11 +193,65 @@ __declspec(dllexport) uint8_t __stdcall soem_getInputPDO(int slave, int offset)
 // slave: スレーブのインクリメンタルアドレス
 // offset: オフセットアドレス
 // value: 出力値
-__declspec(dllexport) void __stdcall soem_setOutPDO(int slave, int offset, uint8_t value)
+void __stdcall soem_setOutputPDO(int slave, int offset, uint8_t value)
 {
 	if(slave <= ec_slavecount)
 	{
 		ec_slave[slave].outputs[offset] = value;
 	}
+}
+
+// ネットワークアダプタの検索
+// return: 見つかったネットワークアダプタの数
+int __stdcall soem_findAdapters(void)
+{
+	adapters = ec_find_adapters();
+	
+	int num = 0;
+	ec_adaptert * adapter = adapters;
+	while (adapter != NULL)
+	{
+		adapter = adapter->next;
+		num++;
+	}
+	return num;
+}
+
+// ネットワークアダプタ名の取得
+// index: ネットワークアダプタの番号(見つかった順)
+// name: ネットワークアダプタの名前
+void __stdcall soem_getAdapterName(int index, char* name)
+{
+	int num = 0;
+	ec_adaptert * adapter = adapters;
+	while (adapter != NULL)
+	{
+		if(num == index){
+			strcpy(name, adapter->name);
+			return;
+		}
+		adapter = adapter->next;
+		num++;
+	}
+	name[0] = '\0';
+}
+
+// ネットワークアダプタの説明の取得
+// index: ネットワークアダプタの番号(見つかった順)
+// desc: ネットワークアダプタの説明
+void __stdcall soem_getAdapterDesc(int index, char* desc)
+{
+	int num = 0;
+	ec_adaptert * adapter = adapters;
+	while (adapter != NULL)
+	{
+		if(num == index){
+			strcpy(desc, adapter->desc);
+			return;
+		}
+		adapter = adapter->next;
+		num++;
+	}
+	desc[0] = '\0';
 }
 

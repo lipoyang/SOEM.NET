@@ -1,0 +1,18 @@
+EXPORTS
+    soem_open
+    soem_close
+    soem_config
+    soem_getSlaveCount
+    soem_updateState
+    soem_getState
+    soem_getALStatusCode
+    soem_getALStatusDesc
+    soem_requestState
+    soem_getName
+    soem_getId
+    soem_transferPDO
+    soem_getInputPDO
+    soem_setOutputPDO
+    soem_findAdapters
+    soem_getAdapterName
+    soem_getAdapterDesc

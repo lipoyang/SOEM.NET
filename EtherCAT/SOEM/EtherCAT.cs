@@ -106,7 +106,24 @@ namespace SOEM
         // slave: スレーブのインクリメンタルアドレス
         // offset: オフセットアドレス
         // value: 出力値
-        [DllImport("soemlib.dll", EntryPoint = "soem_setOutPDO")]
-        extern public static void setOutPDO(int slave, int offset, byte value);
+        [DllImport("soemlib.dll", EntryPoint = "soem_setOutputPDO")]
+        extern public static void setOutputPDO(int slave, int offset, byte value);
+
+        // ネットワークアダプタの検索
+        // return: 見つかったネットワークアダプタの数
+        [DllImport("soemlib.dll", EntryPoint = "soem_findAdapters")]
+        extern public static int findAdapters();
+
+        // ネットワークアダプタ名の取得
+        // index: ネットワークアダプタの番号(見つかった順)
+        // name: ネットワークアダプタの名前
+        [DllImport("soemlib.dll", EntryPoint = "soem_getAdapterName")]
+        extern public static void getAdapterName(int index, string name);
+
+        // ネットワークアダプタの説明の取得
+        // index: ネットワークアダプタの番号(見つかった順)
+        // desc: ネットワークアダプタの説明
+        [DllImport("soemlib.dll", EntryPoint = "soem_getAdapterDesc")]
+        extern public static void getAdapterDesc(int index, string desc);
     }
 }

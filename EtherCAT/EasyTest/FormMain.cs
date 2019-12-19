@@ -146,8 +146,8 @@ namespace EasyTest
                 // サーボの角度指令値を出力バッファに設定
                 lock (m_lockobj)
                 {
-                    EtherCAT.setOutPDO(1, 0, (byte)servo1_val);
-                    EtherCAT.setOutPDO(2, 0, (byte)servo2_val);
+                    EtherCAT.setOutputPDO(1, 0, (byte)servo1_val);
+                    EtherCAT.setOutputPDO(2, 0, (byte)servo2_val);
                 }
                 // EtherCATのPDO転送
                 EtherCAT.transferPDO();
